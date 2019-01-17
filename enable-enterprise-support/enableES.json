@@ -1,0 +1,208 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "CCs": {
+            "Description": "E-mails to CC on created cases",
+            "Type": "String"
+        },
+        "CustomerName" : {
+            "Description": "Your Company's Name",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "NewAccountInOrgFunction": {
+            "Type": "AWS::Lambda::Function",
+            "DependsOn": [
+                "LambdaExecutionRole"
+            ],
+            "Properties": {
+                "Code": {
+                    "ZipFile" : { "Fn::Join" : ["\n", [
+                        "import os",
+                        "import boto3",
+                        "import time",
+                        "    ",
+                        "client = boto3.client('support')",
+                        "    ",
+                        "def lambda_handler(event, context):",
+                        "    ",
+                        "    newAccountID = \" \" ",
+                        "    try: #if account is invited, this is the e-mail",
+                        "        newAccountID = event['detail']['requestParameters']['target']['id']",
+                        "    except: #if account is created, then e-mail has not propagated yet. need to get info through orgs",
+                        "        orgs = boto3.client('organizations')",
+                        "        ",
+                        "        #make sure account is fully created, usually takes a few seconds",
+                        "        time.sleep(15) ",
+                        "        ",
+                        "        #get case creation id",
+                        "        createAccountId = event['detail']['responseElements']['createAccountStatus']['id']",
+                        "        ",
+                        "        #get Account ID",
+                        "        response = orgs.describe_create_account_status(CreateAccountRequestId=createAccountId)",
+                        "        newAccountID = response['CreateAccountStatus']['AccountId']",
+                        "    ",
+                        "    ", 
+                        "    customerName = os.environ['customerName']",
+                        "    caseSubject=\"Add new account to \" + customerName +\" Enterprise Support: \" + newAccountID ",
+                        "    caseSeverityCode='low'",
+                        "    caseCategoryCode='other-account-issues'",
+                        "    caseServiceCode='customer-account'",
+                        "    caseCommunicationBody = \"Hi AWS, please add this account to Enterprise Support: \" + newAccountID",
+                        "    caseCCEmailAddresses=os.environ['ccEmailAddresses']",
+                        "    caseIssueType='customer-service'",
+                        "    ",
+                        "    #Create Case",
+                        "    response = client.create_case(",
+                        "        subject= caseSubject,",
+                        "        severityCode=caseSeverityCode,",
+                        "        categoryCode=caseCategoryCode,",
+                        "        serviceCode=caseServiceCode,",
+                        "        communicationBody=caseCommunicationBody,",
+                        "        ccEmailAddresses=[caseCCEmailAddresses],",
+                        "        language='en',",
+                        "        issueType=caseIssueType",
+                        "    )",
+                        "    ",
+                        "    #Print Case ID to return",
+                        "    caseId = response['caseId']",
+                        "    case = client.describe_cases(",
+                        "        caseIdList=[caseId])",
+                        "    displayId = case['cases'][0]['displayId']",
+                        "    ",
+                        "    return (\"Case \" + displayId + \" opened\")"
+                      ]]}
+                },
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaExecutionRole",
+                        "Arn"
+                    ]
+                },
+                "Environment": {
+                    "Variables": {
+                        "ccEmailAddresses": { "Ref": "CCs" },
+                        "customerName": { "Ref": "CustomerName"}
+                    }
+                },
+                "Timeout": 30,
+                "Handler": "index.lambda_handler",
+                "Runtime": "python3.6",
+                "MemorySize": 128
+            }
+        },
+        "LambdaExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/"
+            }
+        },
+        "LambdaExecutionPolicy": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "LambdaCloudWatchtoSupport",
+                "Roles": [
+                    {
+                        "Ref": "LambdaExecutionRole"
+                    }
+                ],
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": "support:*",
+                            "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": "organizations:DescribeCreateAccountStatus",
+                            "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "logs:CreateLogGroup",
+                                "logs:CreateLogStream",
+                                "logs:PutLogEvents"
+                            ],
+                            "Resource": "arn:aws:logs:*:*:*"
+                        }
+                    ]
+                }
+            }
+        },
+        "DetectAccountCreationRule": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+                "Name": "DetectAccountCreation",
+                "Description": "Trigger when Inviting Account",
+                "State": "ENABLED",
+                "EventPattern": {
+                    "source": [
+                        "aws.organizations"
+                    ],
+                    "detail-type": [
+                        "AWS API Call via CloudTrail"
+                    ],
+                    "detail": {
+                        "eventSource": [
+                            "organizations.amazonaws.com"
+                        ],
+                        "eventName": [
+                            "InviteAccountToOrganization",
+                            "CreateAccount"
+                        ]
+                    }
+                },
+                "Targets": [
+                    {
+                        "Arn": {
+                            "Fn::GetAtt": [
+                                "NewAccountInOrgFunction",
+                                "Arn"
+                            ]
+                        },
+                        "Id": "CreateCase"
+                    }
+                ]
+            }
+        },
+        "InvokeLambdaPermission": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "Action": "lambda:InvokeFunction",
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "NewAccountInOrgFunction",
+                        "Arn"
+                    ]
+                },
+                "Principal": "events.amazonaws.com",
+                "SourceArn": {
+                    "Fn::GetAtt": [
+                        "DetectAccountCreationRule",
+                        "Arn"
+                    ]
+                }
+            }
+        }
+    }
+}
