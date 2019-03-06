@@ -1,0 +1,33 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Startup Kit RESTful API backed by a SimpleTable (DynamoDB).
+
+Globals:
+  Function:
+    Runtime: nodejs8.10
+  Api:
+    # enable CORS; to make more specific, change the origin wildcard
+    # to a particular domain name, e.g. "'www.example.com'"
+    Cors:
+      AllowMethods: "'*'"
+      AllowHeaders: "'*'"
+      AllowOrigin: "'*'"
+
+Resources:
+  GetRandomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/app.getRandom
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /getrandom
+            Method: get
+
+Outputs:
+
+  ApiUrl:
+    Description: URL of the Prod stage of the API endpoint
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
