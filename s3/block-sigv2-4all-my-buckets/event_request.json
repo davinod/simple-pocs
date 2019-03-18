@@ -1,0 +1,38 @@
+{
+  "AddStatement": {
+    "Sid": "DisableSigV2",
+    "Effect": "Deny",
+    "Principal": "*",
+    "Action": "s3:*",
+    "Resource": [
+      "arn:aws:s3:::$bucketname/*",
+      "arn:aws:s3:::$bucketname"
+    ],
+    "Condition": {
+      "StringEquals": {
+        "s3:signatureversion": "AWS"
+      }
+    }
+  },
+  "AddPolicy": {
+    "Version": "2012-10-17",
+    "Id": "SSEAndSSLPolicy",
+    "Statement": [
+      {
+        "Sid": "DisableSigV2",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": "s3:*",
+        "Resource": [
+          "arn:aws:s3:::$bucketname/*",
+          "arn:aws:s3:::$bucketname"
+        ],
+        "Condition": {
+          "StringEquals": {
+            "s3:signatureversion": "AWS"
+          }
+        }
+      }
+    ]
+  }
+}
