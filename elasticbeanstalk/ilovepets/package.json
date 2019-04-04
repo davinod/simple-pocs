@@ -1,0 +1,19 @@
+{
+  "name": "ilovepets",
+  "version": "0.0.0",
+  "description": "Sample app in NodeJS",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha *test.js --reporter spec",
+    "start": "node server.js"
+  },
+  "author": "Davi Diogo <davinod@gmail.com>",
+  "license": "",
+  "dependencies": {
+    "express": "^4.7.2",
+    "express-handlebars": "^3.0.2",
+    "chai": "^4.2.0",
+    "mocha": "^6.0.2"
+  }
+}
