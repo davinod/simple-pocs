@@ -5,15 +5,20 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha *test.js --reporter spec",
+    "test": "./node_modules/mocha/bin/mocha ./tests/*test.js --reporter spec --exit",
     "start": "node server.js"
   },
   "author": "Davi Diogo <davinod@gmail.com>",
   "license": "",
   "dependencies": {
+    "assert": "^1.4.1",
+    "chai": "^4.2.0",
+    "chai-http": "^4.2.1",
     "express": "^4.7.2",
     "express-handlebars": "^3.0.2",
-    "chai": "^4.2.0",
-    "mocha": "^6.0.2"
+    "http": "0.0.0",
+    "mocha": "^6.1.1",
+    "request": "^2.88.0"
   }
 }
+

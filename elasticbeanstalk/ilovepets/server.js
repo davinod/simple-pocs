@@ -85,3 +85,6 @@ app.use(express.static('static'))
 app.listen(process.env.PORT || 3000, function () {
     console.log('Ilovepets app is running...');
 });
+
+module.exports = app
+
