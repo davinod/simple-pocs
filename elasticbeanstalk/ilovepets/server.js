@@ -8,6 +8,10 @@ var express = require('express'),
 
 var app = express();
 
+// Constants
+const PORT = process.env.PORT || 8080;
+const HOST = '0.0.0.0';
+
 // Create `ExpressHandlebars` instance with a default layout.
 var hbs = exphbs.create({
     defaultLayout: 'main',
@@ -61,7 +65,7 @@ app.get('/', function (req, res) {
     const number =  Math.floor(Math.random() * (5 - 1) + 1)
 
     res.render('home', {
-        title: 'Ilovepets - Adopt a buddy',
+        title: 'Ilovedogs - Adopt me',
         number: number
     });
 });
@@ -82,9 +86,10 @@ app.get('/cats', function (req, res) {
 
 app.use(express.static('static'))
 
-app.listen(process.env.PORT || 3000, function () {
-    console.log('Ilovepets app is running...');
-});
+app.listen(PORT, HOST);
+
+console.log('Ilovepets app is running...');
+console.log("HOST:PORT " + HOST + ":" + PORT);
+
 
 module.exports = app
-
