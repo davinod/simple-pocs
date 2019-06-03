@@ -1,0 +1,9 @@
+{
+  "Parameters" : {
+    "VPCId" : "vpc-f2500d97",
+    "KeyName" : "sydney-dev-kp",
+    "AMIId" : "ami-0fb7513bcdc525c3b",
+    "InstanceType" : "t2.micro",
+    "SSHLocation" : "54.240.193.1"
+  }
+}
