@@ -24,8 +24,9 @@ Resources:
       Parameters:
         VPCId: !Ref VPCId
       Tags:
-        Key: TemplateName
-        Value: elb.yaml
+        -
+          Key: TemplateName
+          Value: elb.yaml
   CFNStackASG:
     DependsOn: CFNStackELB
     Type: AWS::CloudFormation::Stack
@@ -42,5 +43,6 @@ Resources:
           Fn::GetAtt: [ CFNStackELB, Outputs.ELBSecurityGroupId ]
         SSHLocation: !Ref SSHLocation
       Tags:
-        Key: TemplateName
-        Value: launchconfig-asg.yaml
+        -
+          Key: TemplateName
+          Value: launchconfig-asg.yaml
