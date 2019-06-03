@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "launchconfig-asg.yaml"
+Parameters:
+  VPCId:
+    Type: String
+    Description: "VCP Id"
+  KeyName:
+    Type: String
+    Description: KeyName
+  AMIId:
+    Type: String
+    Description: "AMI ID"
+  InstanceType:
+    Type: String
+    Description: "Instance Type"
+  ElasticLoadBalancer:
+    Type: String
+    Description: "LoadBalancer Name"
+  ELBSecurityGroup:
+    Type: String
+    Description: "LoadBalancer SecurityGroup"
+  SSHLocation:
+    Type: String
+    Description: "SSH IP Location"
+Resources:
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: !Ref "VPCId"
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: "80"
+        ToPort: "80"
+        SourceSecurityGroupId: !Ref ELBSecurityGroup
+      - IpProtocol: tcp
+        FromPort: "22"
+        ToPort: "22"
+        CidrIp: !Ref SSHLocation
+  LaunchConfig:
+    Type: "AWS::AutoScaling::LaunchConfiguration"
+    Properties:
+      KeyName: !Ref "KeyName"
+      ImageId: !Ref "AMIId"
+      SecurityGroups: [ !Ref "InstanceSecurityGroup" ]
+      InstanceType: !Ref "InstanceType"
+  WebServerGroup:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      AvailabilityZones:
+        Fn::GetAZs: !Ref "AWS::Region"
+      LaunchConfigurationName: !Ref "LaunchConfig"
+      MinSize: "2"
+      MaxSize: "2"
+      LoadBalancerNames: [ !Ref "ElasticLoadBalancer" ]
+      MetricsCollection:
+      -
+        Granularity: "1Minute"
+        Metrics:
+          - "GroupMinSize"
+          - "GroupMaxSize"

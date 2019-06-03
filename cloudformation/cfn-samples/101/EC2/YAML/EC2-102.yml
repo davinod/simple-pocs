@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EC2 Sample - Intro for CloudFormation
+Parameters:
+  TeamName:
+    Type: String
+    Default: DELETE-ME-LATER
+    Description: Team name
+  AMIId:
+    Type: String
+    Description: AMI Id
+    Default: ami-1a668878
+  InstanceType:
+    Type: String
+    Description: Instance Type
+    Default: t2.medium
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Key names
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType:
+        Ref: InstanceType
+      SecurityGroups:
+      - Ref: InstanceSecurityGroup
+      KeyName:
+        Ref: KeyName
+      ImageId:
+        Ref: AMIId
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Join:
+          - "-"
+          - - Ref: TeamName
+            - Ref: AWS::StackName
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0

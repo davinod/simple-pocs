@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "elb.yaml"
+Parameters:
+  VPCId:
+    Type: String
+    Description: "VCP Id"
+Resources:
+  ELBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: !Ref "VPCId"
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: "80"
+        ToPort: "80"
+        CidrIp: 0.0.0.0/0
+  ElasticLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      AvailabilityZones:
+        Fn::GetAZs: !Ref "AWS::Region"
+      Listeners:
+      - LoadBalancerPort: '80'
+        InstancePort: '80'
+        Protocol: HTTP
+      SecurityGroups: [ !Ref ELBSecurityGroup ]
+Outputs:
+  ELBName:
+    Description: "Name of the Load Balancer"
+    Value: !Ref ElasticLoadBalancer
+    Export:
+      Name: ELBName
+  ELBSecurityGroupId:
+    Description: "The ELB Security Group ID"
+    Value: !Ref ELBSecurityGroup
+    Export:
+      Name: ELBSecurityGroupId

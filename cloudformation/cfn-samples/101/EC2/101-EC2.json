@@ -1,0 +1,45 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "EC2 Sample - Intro for CloudFormation",
+    "Parameters":{
+        "TeamName":{
+            "Type":"String",
+            "Default":"DELETE-ME-LATER",
+            "Description":"Team name"
+        }
+    },
+    "Resources": {
+        "EC2Instance": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "InstanceType": "t2.micro",
+                "SecurityGroups": [
+                    {
+                        "Ref": "InstanceSecurityGroup"
+                    }
+                ],
+                "KeyName": "sydney-dev-kp",
+                "ImageId": "ami-1a668878",
+                "Tags" : [
+                    {"Key":"Name",
+                     "Value": { "Fn::Join" : [ "-", [ {"Ref":"TeamName"}, {"Ref":"AWS::StackName"} ] ] }
+                    }
+                ]
+            }
+        },
+        "InstanceSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Enable SSH access via port 22",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "22",
+                        "ToPort": "22",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ]
+            }
+        }
+    }
+}

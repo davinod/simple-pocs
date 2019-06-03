@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Master Stack Sample"
+Parameters:
+  VPCId:
+    Type: "AWS::EC2::VPC::Id"
+    Description: "VCP Id"
+  KeyName:
+    Type: "AWS::EC2::KeyPair::KeyName"
+    Description: KeyName
+  AMIId:
+    Type: String
+    Description: "AMI ID"
+  InstanceType:
+    Type: String
+    Description: "Instance Type"
+  SSHLocation:
+    Type: String
+    Description: "SSH IP Location"
+Resources:
+  CFNStackELB:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aws-davidiog-general-us-east-1/elb.yaml
+      Parameters:
+        VPCId: !Ref VPCId
+      Tags:
+        Key: TemplateName
+        Value: elb.yaml
+  CFNStackASG:
+    DependsOn: CFNStackELB
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aws-davidiog-general-us-east-1/launchconfig-asg.yaml
+      Parameters:
+        VPCId: !Ref VPCId
+        KeyName: !Ref KeyName
+        AMIId: !Ref AMIId
+        InstanceType: !Ref InstanceType
+        ElasticLoadBalancer:
+          Fn::GetAtt: [ CFNStackELB, Outputs.ELBName ]
+        ELBSecurityGroup:
+          Fn::GetAtt: [ CFNStackELB, Outputs.ELBSecurityGroupId ]
+        SSHLocation: !Ref SSHLocation
+      Tags:
+        Key: TemplateName
+        Value: launchconfig-asg.yaml
