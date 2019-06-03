@@ -20,7 +20,7 @@ Resources:
   CFNStackELB:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/aws-davidiog-general-us-east-1/elb.yaml
+      TemplateURL: https://aws-davidiog-s3-general.s3-ap-southeast-2.amazonaws.com/cfn/elb.yaml
       Parameters:
         VPCId: !Ref VPCId
       Tags:
@@ -31,7 +31,7 @@ Resources:
     DependsOn: CFNStackELB
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/aws-davidiog-general-us-east-1/launchconfig-asg.yaml
+      TemplateURL: https://aws-davidiog-s3-general.s3-ap-southeast-2.amazonaws.com/cfn/launchconfig-asg.yaml
       Parameters:
         VPCId: !Ref VPCId
         KeyName: !Ref KeyName
